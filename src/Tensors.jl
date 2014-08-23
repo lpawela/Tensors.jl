@@ -1,8 +1,7 @@
 module Tensors
-export hosvd
+export hosvd, reconstruct, fold, unfold, cpals
 
 include("hosvd.jl")
 include("cpals.jl")
 
-export hosvd
 end

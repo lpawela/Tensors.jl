@@ -1,6 +1,6 @@
 type TuckerOperator
-  coretensor
-  matrices
+  coretensor::AbstractArray
+  matrices::AbstractArray
 end
 
 function unfold(A,n::Integer)
