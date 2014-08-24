@@ -35,7 +35,7 @@ function cpals(X::AbstractArray, rank::Int64; iterations::Int64=100)
 end
 
 function reconstruct(ko::KruskalOperator; rank::Int64=size(ko.vectors[1],2))
-  prm = invperm(sortperm(ko.lambdas))
+  prm = sortperm(ko.lambdas)
   T = ko.lambdas[prm[1]]*outer([ko.vectors[n][:,prm[1]] for n in 1:length(ko.vectors)]...)
   for r in 2:rank
     T += ko.lambdas[prm[r]]*outer([ko.vectors[n][:,prm[r]] for n in 1:length(ko.vectors)]...)
