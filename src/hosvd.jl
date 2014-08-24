@@ -70,9 +70,11 @@ end
 reconstruct(t::TuckerOperator) = modmult_list(t.coretensor, enumerate(t.matrices))
 
 function reconstruct(t::TuckerOperator, r=size(t.coretensor))
-  ct = t.coretensor
+  ranges=[1:r[i] for i in 1:length(r)]
+  ct = copy(t.coretensor[ranges...])
   for (i, m) in enumerate(t.matrices)
-    ct = modemult(ct, m[:,1:r[i]], i)
+    U = m[:,1:r[i]]
+    ct = modemult(ct, U, i)
   end
   return(ct)
 end
