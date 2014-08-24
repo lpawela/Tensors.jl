@@ -35,12 +35,11 @@ function cpals(X::AbstractArray, rank::Int64; iterations::Int64=100)
 end
 
 function reconstruct(ko::KruskalOperator; rank::Int64=size(ko.vectors[1],2))
-  terms=Any[]
-  for r in 1:rank
-    term = ko.lambdas[r]*outer([ko.vectors[n][:,r] for n in 1:length(ko.vectors)]...)
-    push!(terms,term)
+  T = ko.lambdas[1]*outer([ko.vectors[n][:,1] for n in 1:length(ko.vectors)]...)
+  for r in 2:rank
+    T += ko.lambdas[r]*outer([ko.vectors[n][:,r] for n in 1:length(ko.vectors)]...)
   end
-  return sum(terms)
+  T
 end
 
 schurprod(A,B) = A.*B
