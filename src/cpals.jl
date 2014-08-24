@@ -11,19 +11,23 @@ function cpals(X::AbstractArray, rank::Int64; iterations::Int64=100)
   # Normalize column vectors
   for n in 1:N
     for i in size(A[n],2)
-      A[n][:,i]=A[n][:,i]/norm(A[n][:,i])
+      A[n][:,i] = A[n][:,i]/norm(A[n][:,i])
     end
   end
 
   lambdas=[]
   for itr in 1:iterations
     for n in 1:N
-      V=reduce(schurprod, [A[i]'*A[i] for i in [[1:n-1],[n+1:N]]])
-      An=reduce(kr, [A[i] for i in [[N:-1:n+1],[n-1:-1:1]]])
-      A[n]=unfold(X,n)*An*pinv(V)
-      lambdas=[norm(A[n][:,i]) for i in 1:size(A[n],2)]
+      #reduce(schurprod, [A[i]'*A[i] for i in [[1:n-1],[n+1:N]]])
+      V = A[1]'*A[1]
+      for i in [[2:n-1],[n+1:N]]
+        V .*= A[i]'*A[i]
+      end
+      An = reduce(kr, [A[i] for i in [[N:-1:n+1],[n-1:-1:1]]])
+      A[n] = unfold(X,n)*An*pinv(V)
+      lambdas = [norm(A[n][:,i]) for i in 1:size(A[n],2)]
       for i in 1:size(A[n],2)
-        A[n][:,i]=A[n][:,i]/lambdas[i]
+        A[n][:,i] = A[n][:,i]/lambdas[i]
       end
     end
   end
@@ -33,7 +37,7 @@ end
 function reconstruct(ko::KruskalOperator; rank::Int64=size(ko.vectors[1],2))
   terms=Any[]
   for r in 1:rank
-    term=ko.lambdas[r]*outer([ko.vectors[n][:,r] for n in 1:length(ko.vectors)]...)
+    term = ko.lambdas[r]*outer([ko.vectors[n][:,r] for n in 1:length(ko.vectors)]...)
     push!(terms,term)
   end
   return sum(terms)
