@@ -60,7 +60,6 @@ function hosvd(t, r=size(t))
   for n=[1:ndims(t)]
     m = unfold(t,n)
     u = left_singular_vectors(m, r[n])
-    println(size(u))
     push!(an,u)
   end
   g = modemult_list(t, enumerate([a' for a in an]))
