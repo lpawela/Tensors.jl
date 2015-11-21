@@ -3,27 +3,25 @@ type TuckerOperator
   matrices::AbstractArray
 end
 
-function unfold(A,n::Integer)
-    R = n
+function unfold(A::Array, n::Integer)
     C = setdiff(1:ndims(A), n)
     I = size(A)
-    J = prod(I[R])
+    J = prod(I[n])
     K = prod(I[C])
-    Y = reshape(permutedims(A,[R,C]), J,K)
+    Y = reshape(permutedims(A,[n; C]), J, K)
     return Y
 end
 
-function fold{Dimensions<:Integer}(m,dims::Vector{Dimensions},n::Integer)
-    R = n
-    C = setdiff([1:length(dims)], R)
+function fold{T<:Integer}(A::Matrix, dims::Vector{T}, n::Integer)
+    C = setdiff(1:length(dims), n)
     I = dims
-    I[n] = size(m,1)
-    J = prod(I[R])
+    I[n] = size(A, 1)
+    J = prod(I[n])
     K = prod(I[C])
-    axes = [I[R],I[C]]
-    trl = invperm([R,C])
-    Z = reshape(m,axes...)
-    return permutedims(Z,trl)
+    axes = [I[n]; I[C]]
+    trl = invperm([n; C])
+    Z = reshape(A, axes...)
+    return permutedims(Z, trl)
 end
 
 function modemult(t, m, mode::Integer)
