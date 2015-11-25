@@ -1,6 +1,14 @@
-type TuckerOperator
-  coretensor::AbstractArray
-  matrices::AbstractArray
+immutable TuckerOperator{T<:Union{Real, Complex}}
+  coretensor::Array{T}
+  matrices::Vector{Matrix{T}}
+end
+
+function size(t::TuckerOperator)
+  size(t.coretensor)
+end
+
+function size(t::TuckerOperator, n::Int)
+  size(t.coretensor, n)
 end
 
 function unfold(A::Array, n::Integer)
@@ -24,14 +32,14 @@ function fold{T<:Integer}(A::Matrix, dims::Vector{T}, n::Integer)
     return permutedims(Z, trl)
 end
 
-function modemult(t, m, mode::Integer)
+function modemult(t::Array, m::Matrix, mode::Integer)
     ut = unfold(t,mode)
     s = [size(t)...]
     s[mode] = size(m,1)
     return fold(m*ut, s, mode)
 end
 
-function modemult_list(t, mode_matrix_list)
+function modemult_list(t::Array, mode_matrix_list)
     nt = deepcopy(t)
     for (mode,m) in mode_matrix_list
         nt = modemult(nt, m, mode)
@@ -39,9 +47,9 @@ function modemult_list(t, mode_matrix_list)
     return nt
 end
 
-scalarmult(t1,t2) = sum(vec(t1)'*vec(t2))
+scalarmult(t1::Array, t2::Array) = sum(vec(t1)'*vec(t2))
 
-frobeniusnorm(t) = sqrt(scalarmult(t,t))
+frobeniusnorm(t::Array) = sqrt(scalarmult(t,t))
 
 #=
 function decreesing_eigvecs(m::Union(Symmetric, Hermitian), k=1)
@@ -50,10 +58,10 @@ function decreesing_eigvecs(m::Union(Symmetric, Hermitian), k=1)
 end
 =#
 
-left_singular_vectors{T<:Real}(m::Matrix{T}, k::Integer=size(m)[1]) = eigvecs(Symmetric(m*m'))[:,end:-1:end-k+1]
-left_singular_vectors{T<:Complex}(m::Matrix{T}, k::Integer=size(m)[1]) = eigvecs(Hermitian(m*m'))[:,end:-1:end-k+1]
+left_singular_vectors{T<:Real}(m::Matrix{T}, k::Integer=size(m, 1)) = eigvecs(Symmetric(m*m'))[:,end:-1:end-k+1]
+left_singular_vectors{T<:Complex}(m::Matrix{T}, k::Integer=size(m, 1)) = eigvecs(Hermitian(m*m'))[:,end:-1:end-k+1]
 
-function hosvd(t, r=size(t))
+function hosvd(t::Array, r=size(t))
   an=Array(Any, 0)
   for n=[1:ndims(t)]
     m = unfold(t,n)
