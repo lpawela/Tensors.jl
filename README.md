@@ -1,3 +1,5 @@
+![Travis](https://travis-ci.org/lpawela/Tensors.jl.svg?branch=master)
+
 Tensors.jl
 ==========
 
