@@ -7,6 +7,7 @@ facts("TuckerOperator") do
   T = Tensors.TuckerOperator(A, C)
   @fact size(T) --> (2, 2, 2)
   @fact size(T, 2) --> 2
+  @fact_throws T.coretensor = reshape(collect(2:9), 2, 2, 2)
 end
 
 facts("unfold") do
@@ -54,7 +55,7 @@ facts("modemult_list") do
   @fact Tensors.modemult_list(A, matrix_list) --> C
 end
 
-facts("scalamult") do
+facts("scalarmult") do
   A = cat(3, [[1 3]; [2 4]], [[5 7]; [6 8]])
   B = cat(3, [[1 2]; [3 4]], [[5 6]; [7 8]])
   r = sum([1 2 3 4 5 6 7 8] .* [1 3 2 4 5 7 6 8])
@@ -75,4 +76,26 @@ facts("left_singular_vectors") do
 end
 
 facts("hosvd") do
+  A = reshape(collect(1:8), 2, 2, 2)
+  matrix_list = Matrix{Float64}[
+  [[0.641423 -0.767187]; [0.767187 0.641423]],
+  [[0.566724 -0.823908]; [0.823908  0.566724]],
+  [[0.376168 -0.926551]; [0.926551 0.376168]]]
+  coretensor = cat(3, [[14.2254 0.00828025]; [ 0.0160126 -0.238589]],
+  [[0.00461793 -1.11585]; [-0.543771 0.200115]])
+  T = hosvd(A)
+  @fact Tensors.frobeniusnorm(T.coretensor - coretensor) --> roughly(0, atol=1e-5)
+  @fact mapreduce(norm, +, T.matrices - matrix_list) --> roughly(0, atol=1e-4)
+end
+
+facts("reconstruct") do
+  matrix_list = Matrix{Float64}[
+  [[0.641423 -0.767187]; [0.767187 0.641423]],
+  [[0.566724 -0.823908]; [0.823908  0.566724]],
+  [[0.376168 -0.926551]; [0.926551 0.376168]]]
+  coretensor = cat(3, [[14.2254 0.00828025]; [ 0.0160126 -0.238589]],
+  [[0.00461793 -1.11585]; [-0.543771 0.200115]])
+  T = Tensors.TuckerOperator(coretensor, matrix_list)
+  A = reshape(collect(1:8), 2, 2, 2)
+  @fact Tensors.frobeniusnorm(Tensors.reconstruct(T) - A) --> roughly(0, atol=1e-5)
 end

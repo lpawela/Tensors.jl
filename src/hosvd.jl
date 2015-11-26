@@ -1,4 +1,6 @@
-immutable TuckerOperator{T<:Union{Real, Complex}}
+TuckerType = Union{Real, Complex}
+
+immutable TuckerOperator{T<:TuckerType}
   coretensor::Array{T}
   matrices::Vector{Matrix{T}}
 end
@@ -51,25 +53,20 @@ scalarmult(t1::Array, t2::Array) = sum(vec(t1)'*vec(t2))
 
 frobeniusnorm(t::Array) = sqrt(scalarmult(t,t))
 
-#=
-function decreesing_eigvecs(m::Union(Symmetric, Hermitian), k=1)
-  u = eigvecs(m,k:end)
-  u = u[:,end:-1:1]
-end
-=#
-
 left_singular_vectors{T<:Real}(m::Matrix{T}, k::Integer=size(m, 1)) = eigvecs(Symmetric(m*m'))[:,end:-1:end-k+1]
 left_singular_vectors{T<:Complex}(m::Matrix{T}, k::Integer=size(m, 1)) = eigvecs(Hermitian(m*m'))[:,end:-1:end-k+1]
 
-function hosvd(t::Array, r=size(t))
-  an=Array(Any, 0)
-  for n=[1:ndims(t)]
-    m = unfold(t,n)
-    u = left_singular_vectors(m, r[n])
-    push!(an,u)
+for (M, N) in [(Real, Float64), (Complex, Complex128)]
+  @eval function hosvd{T<:$M}(t::Array{T}, r=size(t))
+    an = Matrix{$N}[]
+    for n=1:ndims(t)
+      m = unfold(t, n)
+      u = left_singular_vectors(m, r[n])
+      push!(an, u)
+    end
+    g = modemult_list(t, enumerate([a' for a in an]))
+    return TuckerOperator(g, an)
   end
-  g = modemult_list(t, enumerate([a' for a in an]))
-  return TuckerOperator(g, an)
 end
 
 reconstruct(t::TuckerOperator) = modmult_list(t.coretensor, enumerate(t.matrices))
